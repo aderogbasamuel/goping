@@ -1,0 +1,15 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+
+# Ignore actual production/development secret files
+.env*.local
+
+# Backup and log files that might contain sensitive data
+*.log
+.DS_Store

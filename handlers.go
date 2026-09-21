@@ -1,15 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"encoding/json"
 	"strings"
 )
 
-type Handler struct{
+type Handler struct {
 	storage Storage
 }
+
 func (h Handler) shortenHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
@@ -29,13 +30,18 @@ func (h Handler) shortenHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		_, getErr := h.storage.Get(request.CustomCode)
 
-		if getErr== nil {
+		if getErr == nil {
 			http.Error(w, "Code has been used already", http.StatusConflict)
 			return
 		}
-		
-		// shortCode := shortenURL(request.URL)
-		h.storage.Save(request.CustomCode, request.URL)
+
+		errr := h.storage.Save(request.CustomCode, request.URL)
+
+		if errr != nil {
+			http.Error(w, "Failed to save URL", http.StatusInternalServerError)
+			fmt.Println("Save error:", errr)
+			return
+		}
 		var response ShortenResponse
 		response.ShortCode = request.CustomCode
 		json.NewEncoder(w).Encode(&response)
@@ -54,7 +60,7 @@ func (h Handler) redirectHandler(w http.ResponseWriter, r *http.Request) {
 
 		originalURL, err := h.storage.Get(shortCodeTrimmed)
 
-		if err!=nil {
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
